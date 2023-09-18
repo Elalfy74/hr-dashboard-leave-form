@@ -22,6 +22,7 @@ import {
 } from '@mantine/core';
 
 import { LeaveFormState, LeaveReasons, LeaveType, leaveFormSchema } from './leave-form-schema';
+import { useAddLeave } from '../hooks/use-add-leave';
 
 function parseTimeToDate(timeString: string) {
   return dayjs()
@@ -38,40 +39,47 @@ export function LeaveForm({ departments }: LeaveFormProps) {
   const fromRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLInputElement>(null);
 
+  const { addLeave, addLeaveLoading } = useAddLeave();
+
   const form = useForm<LeaveFormState>({
     validate: zodResolver(leaveFormSchema),
 
     initialValues: {
-      firstName: '',
-      lastName: '',
+      first_name: '',
+      last_name: '',
       email: '',
-      department: departments[0].value,
-      leaveReason: 'Vacation',
+      department_id: departments[0].value,
+      leave_reason: 'Vacation',
       comments: '',
 
-      leaveType: 'Days',
+      leave_type: 'Days',
 
-      startDate: new Date(),
-      endDate: new Date(),
+      start_date: new Date(),
+      end_date: new Date(),
 
-      selectedDay: new Date(),
-      startHour: parseTimeToDate('08:00'),
-      endHour: parseTimeToDate('12:00'),
+      selected_day: new Date(),
+      start_hour: parseTimeToDate('08:00'),
+      end_hour: parseTimeToDate('12:00'),
     },
   });
 
   function handleSubmit(values: LeaveFormState) {
     let submittedValues = { ...values };
 
-    if (values.leaveType === 'Days') {
-      submittedValues = (({ selectedDay, startHour, endHour, ...rest }) => rest)(values);
+    if (values.leave_type === 'Days') {
+      submittedValues = (({
+        selected_day: selectedDay,
+        start_hour: startHour,
+        end_hour: endHour,
+        ...rest
+      }) => rest)(values);
     } else {
-      submittedValues.startDate = null;
-      submittedValues.endDate = null;
+      submittedValues.start_date = null;
+      submittedValues.end_date = null;
     }
 
-    console.log(submittedValues);
-    // mutate(submittedValues);
+    // console.log(submittedValues);
+    addLeave(submittedValues);
   }
 
   return (
@@ -102,14 +110,14 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                 placeholder="First Name"
                 size="md"
                 withAsterisk
-                {...form.getInputProps('firstName')}
+                {...form.getInputProps('first_name')}
               />
               <TextInput
                 label="Last Name"
                 placeholder="Last Name"
                 size="md"
                 withAsterisk
-                {...form.getInputProps('lastName')}
+                {...form.getInputProps('last_name')}
               />
             </SimpleGrid>
 
@@ -126,7 +134,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
               withAsterisk
               size="md"
               data={departments}
-              {...form.getInputProps('department')}
+              {...form.getInputProps('department_id')}
             />
 
             <Title mt="md" order={3}>
@@ -137,7 +145,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
             <Radio.Group
               size="md"
               label="Leave Request For"
-              {...form.getInputProps('leaveType')}
+              {...form.getInputProps('leave_type')}
               withAsterisk
             >
               <Group mt="xs">
@@ -147,7 +155,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
               </Group>
             </Radio.Group>
 
-            {form.values.leaveType === 'Days' && (
+            {form.values.leave_type === 'Days' && (
               <DatePickerInput
                 type="range"
                 size="md"
@@ -160,21 +168,23 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                 withAsterisk
                 minDate={new Date()}
                 maxDate={dayjs(new Date()).add(1, 'month').toDate()}
-                value={[form.values.startDate, form.values.endDate]}
+                value={[form.values.start_date, form.values.end_date]}
                 onChange={(range) =>
                   form.setValues((oldValues) => ({
                     ...oldValues,
-                    startDate: range[0],
-                    endDate: range[1],
+                    start_date: range[0],
+                    end_date: range[1],
                   }))
                 }
                 error={
-                  form.errors.startDate || form.errors.endDate || form.errors['startDate.endDate']
+                  form.errors.start_date ||
+                  form.errors.end_date ||
+                  form.errors['start_date.end_date']
                 }
               />
             )}
 
-            {form.values.leaveType === 'Hours' && (
+            {form.values.leave_type === 'Hours' && (
               <>
                 <DatePickerInput
                   label="Pick Day"
@@ -185,7 +195,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                   weekendDays={[5]}
                   excludeDate={(date) => date.getDay() === 5}
                   withAsterisk
-                  {...form.getInputProps('selectedDay')}
+                  {...form.getInputProps('selected_day')}
                 />
 
                 <SimpleGrid
@@ -202,11 +212,11 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                         <IconClock size="1rem" stroke={1.5} />
                       </ActionIcon>
                     }
-                    value={dayjs(form.values.startHour).format('HH:mm')}
+                    value={dayjs(form.values.start_hour).format('HH:mm')}
                     onChange={(e) =>
-                      form.setFieldValue('startHour', parseTimeToDate(e.target.value))
+                      form.setFieldValue('start_hour', parseTimeToDate(e.target.value))
                     }
-                    error={form.errors.startHour || form.errors['startHour.endHour']}
+                    error={form.errors.start_hour || form.errors['start_hour.end_hour']}
                   />
                   <TimeInput
                     label="To"
@@ -217,9 +227,11 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                         <IconClock size="1rem" stroke={1.5} />
                       </ActionIcon>
                     }
-                    value={dayjs(form.values.endHour).format('HH:mm')}
-                    onChange={(e) => form.setFieldValue('endHour', parseTimeToDate(e.target.value))}
-                    error={form.errors.endHour || form.errors['startHour.endHour']}
+                    value={dayjs(form.values.end_hour).format('HH:mm')}
+                    onChange={(e) =>
+                      form.setFieldValue('end_hour', parseTimeToDate(e.target.value))
+                    }
+                    error={form.errors.end_hour || form.errors['start_hour.end_hour']}
                   />
                 </SimpleGrid>
               </>
@@ -228,7 +240,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
             <Radio.Group
               size="md"
               label="Leave Reason"
-              {...form.getInputProps('leaveReason')}
+              {...form.getInputProps('leave_reason')}
               withAsterisk
             >
               <Group mt="xs">
@@ -246,7 +258,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
             />
 
             <Button type="submit" mt="xl" size="lg">
-              {false ? <Loader variant="dots" color="white" /> : 'Submit'}
+              {addLeaveLoading ? <Loader variant="dots" color="white" /> : 'Submit'}
             </Button>
           </Stack>
         </form>

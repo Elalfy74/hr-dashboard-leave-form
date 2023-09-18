@@ -21,26 +21,26 @@ export const LeaveType = ['Hours', 'Days'] as const;
 
 export const leaveFormSchema = z
   .object({
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
+    first_name: z.string().min(1),
+    last_name: z.string().min(1),
     email: z.string().email(),
-    department: z.string(),
-    leaveReason: z.enum(LeaveReasons),
+    department_id: z.string(),
+    leave_reason: z.enum(LeaveReasons),
     comments: z.string().optional(),
 
-    leaveType: z.enum(LeaveType),
+    leave_type: z.enum(LeaveType),
 
-    startDate: z.date().nullable(),
-    endDate: z.date().nullable(),
+    start_date: z.date().nullable(),
+    end_date: z.date().nullable(),
 
-    selectedDay: z.date().nullable().optional(),
-    startHour: z
+    selected_day: z.date().nullable().optional(),
+    start_hour: z
       .date({
         invalid_type_error: 'Invalid Time',
       })
       .nullable()
       .optional(),
-    endHour: z
+    end_hour: z
       .date({
         invalid_type_error: 'Invalid Time',
       })
@@ -49,55 +49,55 @@ export const leaveFormSchema = z
   })
   .refine(
     (values) => {
-      if (values.leaveType === 'Hours') {
-        if (!values.selectedDay) {
+      if (values.leave_type === 'Hours') {
+        if (!values.selected_day) {
           errorMsg = {
             message: 'selectedDay is required',
-            path: ['selectedDay'],
+            path: ['selected_day'],
           };
           return false;
         }
-        if (!values.startHour) {
+        if (!values.start_hour) {
           errorMsg = {
             message: 'startHour is required',
-            path: ['startHour'],
+            path: ['start_hour'],
           };
           return false;
         }
-        if (!values.endHour) {
+        if (!values.end_hour) {
           errorMsg = {
             message: 'endHour is required',
-            path: ['endHour'],
+            path: ['end_hour'],
           };
           return false;
         }
-        if (values.startHour > values.endHour) {
+        if (values.start_hour > values.end_hour) {
           errorMsg = {
             message: 'Start hour cannot be after the end hour',
-            path: ['startHour', 'endHour'],
+            path: ['start_hour', 'end_hour'],
           };
           return false;
         }
       }
-      if (values.leaveType === 'Days') {
-        if (!values.startDate) {
+      if (values.leave_type === 'Days') {
+        if (!values.start_date) {
           errorMsg = {
             message: 'startDate is required',
-            path: ['startDate'],
+            path: ['start_date'],
           };
           return false;
         }
-        if (!values.endDate) {
+        if (!values.end_date) {
           errorMsg = {
             message: 'endDate is required',
-            path: ['endDate'],
+            path: ['end_date'],
           };
           return false;
         }
-        if (values.startDate > values.endDate) {
+        if (values.start_date > values.end_date) {
           errorMsg = {
             message: 'Start date cannot be after the end date',
-            path: ['startDate', 'endDate'],
+            path: ['start_date', 'end_date'],
           };
           return false;
         }
@@ -107,13 +107,13 @@ export const leaveFormSchema = z
     () => errorMsg
   )
   .transform((values) => {
-    if (values.leaveType === 'Hours') {
-      values.startDate = null;
-      values.endDate = null;
+    if (values.leave_type === 'Hours') {
+      values.start_date = null;
+      values.end_date = null;
     } else {
-      values.selectedDay = null;
-      values.startHour = null;
-      values.endHour = null;
+      values.selected_day = null;
+      values.start_hour = null;
+      values.end_hour = null;
     }
 
     return values;
