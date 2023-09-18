@@ -1,10 +1,9 @@
 import { ThemeProvider } from './ThemeProvider';
-import { Welcome } from './Welcome/Welcome';
+import { LeaveForm } from './components/leave-form';
+import { useDepartments } from './hooks/use-departments';
 
 export default function App() {
-  return (
-    <ThemeProvider>
-      <Welcome />
-    </ThemeProvider>
-  );
+  const departments = useDepartments();
+
+  return <ThemeProvider>{departments && <LeaveForm departments={departments} />}</ThemeProvider>;
 }
