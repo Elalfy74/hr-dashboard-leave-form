@@ -3,8 +3,10 @@ import { supabase } from './supabase';
 import { LeaveFormState } from '../components/leave-form-schema';
 
 export async function addLeave(input: LeaveFormState) {
+  const serializedInput = (({ leave_type, ...rest }) => rest)(input);
+
   const { data, error } = await supabase.from('leaves').insert({
-    ...input,
+    ...serializedInput,
     department_id: +input.department_id,
     leave_type_days: input.leave_type === 'Days',
     selected_day: input.selected_day?.toLocaleDateString(),
@@ -14,7 +16,9 @@ export async function addLeave(input: LeaveFormState) {
     end_date: input.end_date?.toLocaleDateString(),
   });
 
-  if (error) throw new Error(error.message);
+  const errMsg = error?.code === '23503' ? 'Invalid Email address' : error?.message;
+
+  if (error) throw new Error(errMsg);
 
   return data;
 }

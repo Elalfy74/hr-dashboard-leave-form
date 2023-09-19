@@ -1,6 +1,57 @@
 /* eslint-disable no-param-reassign */
 import { z } from 'zod';
 
+function validateHours(values: any) {
+  if (!values.selected_day) {
+    return {
+      message: 'selectedDay is required',
+      path: ['selected_day'],
+    };
+  }
+  if (!values.start_hour) {
+    return {
+      message: 'startHour is required',
+      path: ['start_hour'],
+    };
+  }
+  if (!values.end_hour) {
+    return {
+      message: 'endHour is required',
+      path: ['end_hour'],
+    };
+  }
+  if (values.start_hour > values.end_hour) {
+    return {
+      message: 'Start hour cannot be after the end hour',
+      path: ['start_hour', 'end_hour'],
+    };
+  }
+  return null; // Validation passed
+}
+
+// Function to validate leave type 'Days'
+function validateDays(values: any) {
+  if (!values.start_date) {
+    return {
+      message: 'startDate is required',
+      path: ['start_date'],
+    };
+  }
+  if (!values.end_date) {
+    return {
+      message: 'endDate is required',
+      path: ['end_date'],
+    };
+  }
+  if (values.start_date > values.end_date) {
+    return {
+      message: 'Start date cannot be after the end date',
+      path: ['start_date', 'end_date'],
+    };
+  }
+  return null; // Validation passed
+}
+
 type RefineParams = {
   // override error message
   message?: string;
@@ -50,57 +101,18 @@ export const leaveFormSchema = z
   .refine(
     (values) => {
       if (values.leave_type === 'Hours') {
-        if (!values.selected_day) {
-          errorMsg = {
-            message: 'selectedDay is required',
-            path: ['selected_day'],
-          };
-          return false;
-        }
-        if (!values.start_hour) {
-          errorMsg = {
-            message: 'startHour is required',
-            path: ['start_hour'],
-          };
-          return false;
-        }
-        if (!values.end_hour) {
-          errorMsg = {
-            message: 'endHour is required',
-            path: ['end_hour'],
-          };
-          return false;
-        }
-        if (values.start_hour > values.end_hour) {
-          errorMsg = {
-            message: 'Start hour cannot be after the end hour',
-            path: ['start_hour', 'end_hour'],
-          };
-          return false;
-        }
+        const result = validateHours(values);
+
+        result && (errorMsg = result);
+
+        return result === null;
       }
       if (values.leave_type === 'Days') {
-        if (!values.start_date) {
-          errorMsg = {
-            message: 'startDate is required',
-            path: ['start_date'],
-          };
-          return false;
-        }
-        if (!values.end_date) {
-          errorMsg = {
-            message: 'endDate is required',
-            path: ['end_date'],
-          };
-          return false;
-        }
-        if (values.start_date > values.end_date) {
-          errorMsg = {
-            message: 'Start date cannot be after the end date',
-            path: ['start_date', 'end_date'],
-          };
-          return false;
-        }
+        const result = validateDays(values);
+
+        result && (errorMsg = result);
+
+        return result === null;
       }
       return true;
     },

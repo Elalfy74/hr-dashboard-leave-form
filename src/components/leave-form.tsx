@@ -1,9 +1,10 @@
 import { useRef } from 'react';
-import { IconClock } from '@tabler/icons-react';
+import { IconClock, IconInfoCircle } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { DatePickerInput, TimeInput } from '@mantine/dates';
 import { useForm, zodResolver } from '@mantine/form';
 import {
+  Alert,
   ActionIcon,
   Button,
   Container,
@@ -39,7 +40,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
   const fromRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLInputElement>(null);
 
-  const { addLeave, addLeaveLoading } = useAddLeave();
+  const { addLeave, addLeaveLoading, addLeaveError } = useAddLeave();
 
   const form = useForm<LeaveFormState>({
     validate: zodResolver(leaveFormSchema),
@@ -52,7 +53,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
       leave_reason: 'Vacation',
       comments: '',
 
-      leave_type: 'Days',
+      leave_type: 'Hours',
 
       start_date: new Date(),
       end_date: new Date(),
@@ -78,33 +79,28 @@ export function LeaveForm({ departments }: LeaveFormProps) {
       submittedValues.end_date = null;
     }
 
-    // console.log(submittedValues);
     addLeave(submittedValues);
   }
 
   return (
     <Container size={800} my={40}>
       <Paper radius="md" p="xl" withBorder>
-        <Title
-          order={1}
-          sx={(theme) => ({
-            fontFamily: `Greycliff CF, ${theme.fontFamily}`,
-            fontWeight: 900,
-          })}
-        >
+        {addLeaveError && (
+          <Alert variant="light" color="red" title={addLeaveError} icon={<IconInfoCircle />}>
+            The email you entered doesn&apos;t match with any email in our data.
+          </Alert>
+        )}
+
+        <Title order={1} fw={900}>
           Request for Leave
         </Title>
-        <Text size="lg" weight={500}>
+        <Text size="lg" fw={500}>
           Request your leave details down below.
         </Text>
         <Divider my="lg" />
         <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
           <Stack>
-            <SimpleGrid
-              cols={1}
-              spacing="md"
-              breakpoints={[{ minWidth: 'sm', cols: 2, spacing: 'lg' }]}
-            >
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={{ base: 'md', sm: 'lg' }}>
               <TextInput
                 label="First Name"
                 placeholder="First Name"
@@ -163,8 +159,8 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                 placeholder="Pick dates range"
                 allowSingleDateInRange
                 firstDayOfWeek={6}
-                weekendDays={[5]}
-                excludeDate={(date) => date.getDay() === 5}
+                weekendDays={[5, 6]}
+                excludeDate={(date) => date.getDay() === 5 || date.getDay() === 6}
                 withAsterisk
                 minDate={new Date()}
                 maxDate={dayjs(new Date()).add(1, 'month').toDate()}
@@ -192,23 +188,19 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                   minDate={new Date()}
                   maxDate={dayjs(new Date()).add(1, 'month').toDate()}
                   firstDayOfWeek={6}
-                  weekendDays={[5]}
-                  excludeDate={(date) => date.getDay() === 5}
+                  weekendDays={[5, 6]}
+                  excludeDate={(date) => date.getDay() === 5 || date.getDay() === 6}
                   withAsterisk
                   {...form.getInputProps('selected_day')}
                 />
 
-                <SimpleGrid
-                  cols={1}
-                  spacing="md"
-                  breakpoints={[{ minWidth: 'sm', cols: 2, spacing: 'lg' }]}
-                >
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={{ base: 'md', sm: 'lg' }}>
                   <TimeInput
                     label="From"
                     size="md"
                     ref={fromRef}
                     rightSection={
-                      <ActionIcon onClick={() => fromRef.current?.showPicker()}>
+                      <ActionIcon onClick={() => fromRef.current?.showPicker()} variant="default">
                         <IconClock size="1rem" stroke={1.5} />
                       </ActionIcon>
                     }
@@ -223,7 +215,7 @@ export function LeaveForm({ departments }: LeaveFormProps) {
                     size="md"
                     ref={endRef}
                     rightSection={
-                      <ActionIcon onClick={() => endRef.current?.showPicker()}>
+                      <ActionIcon onClick={() => endRef.current?.showPicker()} variant="default">
                         <IconClock size="1rem" stroke={1.5} />
                       </ActionIcon>
                     }
